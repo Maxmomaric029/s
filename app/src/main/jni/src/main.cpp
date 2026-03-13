@@ -31,13 +31,9 @@ void* hack_thread(void*) {
         LOGI("SUCCESS: libil2cpp.so found at %lx", libBase);
         isGameLibLoaded = true;
         
-        // Intentar inicializar punteros de forma segura
-        try {
-            setupHooks();
-            LOGI("Hooks initialized successfully!");
-        } catch (...) {
-            LOGE("CRITICAL ERROR: Failed to setup hooks!");
-        }
+        // Inicializar hooks de forma directa (las protecciones están en setupHooks)
+        setupHooks();
+        LOGI("Hooks initialized successfully!");
     } else {
         LOGE("ERROR: Timeout waiting for game library!");
     }
