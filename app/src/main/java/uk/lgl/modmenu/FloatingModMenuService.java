@@ -227,33 +227,35 @@ public class FloatingModMenuService extends Service {
         ((ViewGroup.MarginLayoutParams) startimage.getLayoutParams()).topMargin = convertDipToPixels(10);
 
         mExpanded.setVisibility(View.GONE);
-        mExpanded.setBackgroundColor(Color.parseColor("BLACK"));
-        mExpanded.setAlpha(0.95f);
-        mExpanded.setGravity(17);
+        
+        // --- DISEÑO 9B BLOODIE VIP ---
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.parseColor("#121212")); // Negro profundo
+        bg.setCornerRadius(30f); // Esquinas muy redondeadas
+        bg.setStroke(3, Color.parseColor("#FF0000")); // Borde Rojo Sangre
+        mExpanded.setBackground(bg);
+        mExpanded.setAlpha(0.98f);
+        mExpanded.setElevation(20f);
+        
         mExpanded.setOrientation(LinearLayout.VERTICAL);
         mExpanded.setPadding(0, 0, 0, 0);
-		android.graphics.drawable.GradientDrawable JCFADDB = new android.graphics.drawable.GradientDrawable();
-		int JCFADDBADD[] = new int[]{ Color.argb(255,230,15,0), Color.argb(255,0,0,140) };
-		JCFADDB.setColors(JCFADDBADD);
-		
-		JCFADDB.setOrientation(android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT);
-		JCFADDB.setCornerRadius(26);
-		mExpanded.setBackground(JCFADDB);
-		if(Build.VERSION.SDK_INT >= 21) { mExpanded.setElevation(100f); }
-	
-        //Auto size. To set size manually, change the width and height example 500, 500
-        mExpanded.setLayoutParams(new LinearLayout.LayoutParams(dp(230), dp(330)));
+
+        // Tamaño moderno y fijo
+        mExpanded.setLayoutParams(new LinearLayout.LayoutParams(dp(280), dp(350)));
 
         ScrollView scrollView = new ScrollView(getBaseContext());
-        scrollView.setLayoutParams(new LinearLayout.LayoutParams(-1, dp(205)));
+        scrollView.setLayoutParams(new LinearLayout.LayoutParams(-1, dp(220))); // Más espacio para trucos
 
-        view1.setLayoutParams(new LinearLayout.LayoutParams(-1, 5));
-        view1.setBackgroundColor(Color.parseColor("#000000"));
+        view1.setLayoutParams(new LinearLayout.LayoutParams(-1, 2)); // Línea separadora fina
+        view1.setBackgroundColor(Color.parseColor("#FF0000")); // Línea Roja
+        
         patches.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
         patches.setOrientation(LinearLayout.VERTICAL);
-        view2.setLayoutParams(new LinearLayout.LayoutParams(-1, 5));
-        view2.setBackgroundColor(Color.parseColor("#000000"));
-        view2.setPadding(0, 0, 0, 10);
+        patches.setPadding(10, 10, 10, 10); // Padding interno para los trucos
+        
+        view2.setLayoutParams(new LinearLayout.LayoutParams(-1, 2));
+        view2.setBackgroundColor(Color.parseColor("#FF0000")); // Línea Roja
+        
         mButtonPanel.setLayoutParams(new LinearLayout.LayoutParams(-2, -2));
 
         //Title text
