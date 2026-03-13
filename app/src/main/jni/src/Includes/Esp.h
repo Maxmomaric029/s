@@ -2,33 +2,9 @@
 #define ESP_H
 
 #include <jni.h>
-
-// Definiciones de estructuras para el ESP (Vector3, Color, Rect)
-struct Vector3 {
-    float X, Y, Z;
-    Vector3() : X(0), Y(0), Z(0) {}
-    Vector3(float x, float y, float z) : X(x), Y(y), Z(z) {}
-    Vector3(float x, float y) : X(x), Y(y), Z(0) {}
-    
-    Vector3& operator+=(const Vector3& rhs) { X += rhs.X; Y += rhs.Y; Z += rhs.Z; return *this; }
-    Vector3& operator-=(const Vector3& rhs) { X -= rhs.X; Y -= rhs.Y; Z -= rhs.Z; return *this; }
-};
-
-struct Color {
-    float R, G, B, A;
-    Color() : R(0), G(0), B(0), A(255) {}
-    Color(float r, float g, float b, float a) : R(r), G(g), B(b), A(a) {}
-};
-
-struct Rect {
-    float m_XMin, m_YMin, m_Width, m_Height;
-    Rect() : m_XMin(0), m_YMin(0), m_Width(0), m_Height(0) {}
-    Rect(float x, float y, float w, float h) : m_XMin(x), m_YMin(y), m_Width(w), m_Height(h) {}
-};
-
-// Sobrecarga de operadores básicos para Vector3
-inline Vector3 operator+(Vector3 lhs, const Vector3& rhs) { lhs += rhs; return lhs; }
-inline Vector3 operator-(Vector3 lhs, const Vector3& rhs) { lhs -= rhs; return lhs; }
+#include "../Unity/Vector3.hpp"
+#include "../Unity/Color.hpp"
+#include "../Unity/Rect.hpp"
 
 class ESP {
 private:
