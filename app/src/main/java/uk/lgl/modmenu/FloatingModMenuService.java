@@ -135,15 +135,20 @@ public class FloatingModMenuService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        //A little message for the user when he opens the app
-        //Toast.makeText(this, Toast(), Toast.LENGTH_LONG).show();
-        //Init Lib
+        
+        // Lanzar Free Fire Max automáticamente
+        try {
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launchIntent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        // When you change the lib name, change also on Android.mk file
-        // Both must have same name
+        // Init Lib
         System.loadLibrary("AnaGaby");
-
-
         initFloating();
         CreateMenuList();
         initAlertDiag();
