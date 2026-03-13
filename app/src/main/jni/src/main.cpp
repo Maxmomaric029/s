@@ -3,34 +3,50 @@
 #include <vector>
 #include <pthread.h>
 #include <unistd.h>
+#include <android/log.h>
 #include "Includes/Utils.h"
 #include "KittyMemory/MemoryPatch.h"
-#include "Includes/Esp.h"
 #include "Hook.h"
 
-// Flags de control
+#define LOG_TAG "9b_bloodie"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
 bool isGameLibLoaded = false;
 
-// Hilo principal de los trucos
+// Función de monitoreo de hilos
 void* hack_thread(void*) {
-    __android_log_print(ANDROID_LOG_INFO, "9b_bloodie", "Hack Thread Started. Waiting for Game...");
+    LOGI(">>> HACK THREAD STARTING... <<<");
     
-    // Esperar hasta que la librería del juego esté cargada
-    while (get_libBase(libName) == 0) {
-        sleep(1);
+    int retries = 0;
+    while (libBase == 0 && retries < 60) {
+        libBase = get_libBase(libName);
+        if (libBase == 0) {
+            LOGI("Waiting for %s... (Attempt %d)", libName, retries++);
+            sleep(2); // Esperar 2 segundos entre intentos
+        }
     }
-    
-    isGameLibLoaded = true;
-    libBase = get_libBase(libName);
-    __android_log_print(ANDROID_LOG_INFO, "9b_bloodie", "Game Lib Loaded! Base: %lx", libBase);
-    
-    // Aquí puedes inicializar hooks de funciones reales si tienes los offsets largos
-    // Ejemplo: if (Global.U3DStr > 0x1000) { ... setup hooks ... }
+
+    if (libBase != 0) {
+        LOGI("SUCCESS: libil2cpp.so found at %lx", libBase);
+        isGameLibLoaded = true;
+        
+        // Intentar inicializar punteros de forma segura
+        try {
+            setupHooks();
+            LOGI("Hooks initialized successfully!");
+        } catch (...) {
+            LOGE("CRITICAL ERROR: Failed to setup hooks!");
+        }
+    } else {
+        LOGE("ERROR: Timeout waiting for game library!");
+    }
     
     return NULL;
 }
 
 extern "C" {
+
 JNIEXPORT jboolean JNICALL
 Java_uk_lgl_modmenu_FloatingModMenuService_EnableSounds(JNIEnv *env, jobject activityObject) {
     return true;
@@ -43,43 +59,50 @@ Java_uk_lgl_modmenu_FloatingModMenuService_Title(JNIEnv *env, jobject activityOb
 
 JNIEXPORT jstring JNICALL
 Java_uk_lgl_modmenu_FloatingModMenuService_Heading(JNIEnv *env, jobject activityObject) {
-    return env->NewStringUTF("Status: Online | Waiting for Game...");
-}
-
-JNIEXPORT jstring JNICALL
-Java_uk_lgl_modmenu_FloatingModMenuService_Toast(JNIEnv *env, jclass clazz) {
-    return env->NewStringUTF("Modded by 9b bloodie");
+    if (isGameLibLoaded) return env->NewStringUTF("Status: Online | Game Hooked ✅");
+    return env->NewStringUTF("Status: Waiting | Finding Game... 🔍");
 }
 
 JNIEXPORT void JNICALL
 Java_uk_lgl_modmenu_FloatingModMenuService_Changes(JNIEnv *env, jobject activityObject, jint feature, jint value) {
-    if (!isGameLibLoaded) return; // No hacer nada si el juego no ha cargado
+    LOGI("Feature Change: ID %d, Value %d", feature, value);
+    
+    if (!isGameLibLoaded) {
+        LOGE("Warning: Change ignored, game not hooked yet.");
+        return;
+    }
 
-    switch (feature) {
-        case 6: // No Recoil
-            if (value == 1) {
-                // Solo aplicar si el offset es una función real, no un campo de clase
-                if (Global.noRecoil > 0x1000) {
-                    hexlibPatches.recargaRapida = MemoryPatch::createWithHex(libName, Global.noRecoil, "00 00 A0 E3 1E FF 2F E1");
-                    hexlibPatches.recargaRapida.Modify();
-                }
+    // Lógica de parches (Solo si la librería está cargada)
+    if (feature == 6 && Global.noRecoil > 0x1000) {
+        if (value == 1) {
+            hexlibPatches.recargaRapida = MemoryPatch::createWithHex(libName, Global.noRecoil, "00 00 A0 E3 1E FF 2F E1");
+            if (hexlibPatches.recargaRapida.Modify()) {
+                LOGI("No Recoil: Modified!");
             } else {
-                hexlibPatches.recargaRapida.Restore();
+                LOGE("No Recoil: Modification Failed!");
             }
-            break;
+        } else {
+            hexlibPatches.recargaRapida.Restore();
+            LOGI("No Recoil: Restored!");
+        }
     }
 }
 
-// Inicializador de la librería
+// JNI_OnLoad: Se ejecuta al cargar la librería
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    LOGI("JNI_OnLoad called - Initializing 9b bloodie...");
+    
     pthread_t t;
-    pthread_create(&t, NULL, hack_thread, NULL);
+    if (pthread_create(&t, NULL, hack_thread, NULL) != 0) {
+        LOGE("Failed to create hack thread!");
+    }
+    
     return JNI_VERSION_1_6;
 }
 
 JNIEXPORT jobjectArray JNICALL
 Java_uk_lgl_modmenu_FloatingModMenuService_getFeatureListttttttttt(JNIEnv *env, jobject activityObject) {
-    const char *features[] = {"6_Toggle_No Recoil", "0_Toggle_Aimbot (Safe)", "2_Toggle_ESP Lines"};
+    const char *features[] = {"6_Toggle_No Recoil", "0_Toggle_Aimbot", "2_Toggle_ESP Lines"};
     jobjectArray ret = (jobjectArray) env->NewObjectArray(3, env->FindClass("java/lang/String"), env->NewStringUTF(""));
     for (int i = 0; i < 3; i++) env->SetObjectArrayElement(ret, i, env->NewStringUTF(features[i]));
     return ret;
