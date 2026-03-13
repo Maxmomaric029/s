@@ -1,8 +1,9 @@
 #ifndef ANDROID_MOD_MENU_HOOK_H
 #define ANDROID_MOD_MENU_HOOK_H
-#include <src/Unity/Vector3.hpp>
-#include <src/Unity/Quaternion.hpp>
-#include <src/Unity/Vector2.hpp>
+#include "Unity/Unity.h"
+#include "Unity/Vector3.hpp"
+#include "Unity/Quaternion.hpp"
+#include "Unity/Vector2.hpp"
 #include "Global.h"
 using namespace std;
 
