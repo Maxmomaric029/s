@@ -393,7 +393,7 @@ public class FloatingModMenuService extends Service {
     }
 
     private void CreateMenuList() {
-        String[] listFT = getFeatureListttttttttt();
+        String[] listFT = getFeatureList();
         for (int i = 0; i < listFT.length; i++) {
             final int feature = i;
             String str = listFT[i];
