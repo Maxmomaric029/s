@@ -119,7 +119,7 @@ public class FloatingModMenuService extends Service {
 
     public native void Changes(int feature, int value);
 
-    private native String[] getFeatureListttttttttt();
+    private native String[] getFeatureList();
 
     @Override
     public IBinder onBind(Intent intent) {

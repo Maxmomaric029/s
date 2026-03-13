@@ -8,25 +8,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-typedef unsigned long DWORD;
+// Usar uintptr_t para compatibilidad total con 64 bits (ARM64)
+typedef uintptr_t addr_t;
 
-DWORD libBase = 0;
+addr_t libBase = 0;
 const char* libName = "libil2cpp.so";
 
-DWORD getRealOffset(DWORD address);
+addr_t getRealOffset(addr_t address);
 
-// Función manual para encontrar la base de la librería (Compatible con versiones antiguas)
-DWORD get_libBase(const char* libName) {
+// Función optimizada para encontrar la base de la librería
+addr_t get_libBase(const char* libraryName) {
     FILE *fp;
-    DWORD addr = 0;
-    char filename[32], buffer[1024];
-    snprintf(filename, sizeof(filename), "/proc/self/maps");
-    fp = fopen(filename, "rt");
+    addr_t addr = 0;
+    char buffer[1024];
+    
+    // Abrir los mapas del proceso actual
+    fp = fopen("/proc/self/maps", "rt");
     if (fp != NULL) {
         while (fgets(buffer, sizeof(buffer), fp)) {
-            if (strstr(buffer, libName)) {
-                addr = (uintptr_t) strtoul(buffer, NULL, 16);
+            if (strstr(buffer, libraryName)) {
+                addr = (addr_t) strtoul(buffer, NULL, 16);
                 break;
             }
         }
@@ -35,15 +38,13 @@ DWORD get_libBase(const char* libName) {
     return addr;
 }
 
-DWORD getRealOffset(DWORD address) {
+addr_t getRealOffset(addr_t address) {
     if (libBase == 0) {
         libBase = get_libBase(libName);
         if (libBase == 0) {
-             __android_log_print(ANDROID_LOG_ERROR, "9b_bloodie", "libil2cpp NOT FOUND! Retrying...");
-             // Intento secundario si la primera lectura falla (común en algunos dispositivos)
-             libBase = get_libBase("libil2cpp.so");
+             __android_log_print(ANDROID_LOG_ERROR, "9b_bloodie", "CRITICAL: %s not found in memory!", libName);
         } else {
-             __android_log_print(ANDROID_LOG_INFO, "9b_bloodie", "libil2cpp found at: %lx", libBase);
+             __android_log_print(ANDROID_LOG_INFO, "9b_bloodie", "SUCCESS: %s found at %p", libName, (void*)libBase);
         }
     }
     return (libBase + address);
